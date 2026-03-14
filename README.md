@@ -39,8 +39,8 @@ On each run, the bot performs the following actions automatically:
 ### 1. Clone the repository
 
 ```bash
-git clone <repository-url>
-cd <project-folder>
+git clone https://github.com/joaopmts/MaxBot
+cd MaxBot
 ```
 
 ### 2. Create the `.env` file
