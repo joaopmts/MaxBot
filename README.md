@@ -7,11 +7,12 @@ Automated bot for booking tennis courts, built with Python and Playwright, packa
 On each run, the bot performs the following actions automatically:
 
 - Logs into the booking website
-- Calculates the next Friday and selects the date
+- Calculates the next Friday and locks the date for the entire execution
+- **Checks for existing relevant reservations** before attempting anything new
 - Tries to book **Court 1 (Saibro 1)** at **07:00** and **08:00**
 - If Court 1 is unavailable, falls back to **Court 3 (Saibro 3)**
-- Adds an additional player (Rafaela Garcia) to each reservation
-- If a slot is unavailable, reports **who booked it** in the log
+- Adds **João Paulo** as an additional player to each reservation
+- **Cancels incomplete bookings** if a paired slot cannot be completed
 - Saves confirmation screenshots to `/screenshots`
 - Saves execution logs to `/logs`
 
@@ -19,14 +20,32 @@ On each run, the bot performs the following actions automatically:
 
 ## Booking Logic
 
+### Phase 1 — Duplicate Check
+
+Before attempting any reservation, the bot scans the bookings page for existing entries under the name **João Paulo** that match the target courts (Saibro 1 or Saibro 3) and target times (07:00 or 08:00).
+
+- If relevant reservations are found → logs them and **exits immediately**
+- Reservations on other courts or other time slots are ignored and logged as `"fora do escopo"`
+
+### Phase 2 — Reservation Attempts
+
 ```
 Try Court 1 at 07:00
-├── Success → Try Court 1 at 08:00 → Done
-└── Fail → Try Court 3 at 07:00
-            ├── Success → Try Court 3 at 08:00
-            │             Log who booked Court 1
-            └── Fail → Log who booked Court 1 and Court 3
+├── Success → Try Court 1 at 08:00
+│             ├── Success → ✅ Court 1 complete. Done.
+│             └── Fail    → Try Court 3 at 07:00
+│                           ├── Success → Try Court 3 at 08:00
+│                           │             ├── Success → ✅ Court 3 complete. Cancel Court 1 07:00. Done.
+│                           │             └── Fail    → ❌ Incomplete pair. Cancel Court 1 07:00 + Court 3 07:00. Done.
+│                           └── Fail    → ❌ Court 3 unavailable. Cancel Court 1 07:00. Done.
+└── Fail    → Try Court 3 at 07:00
+              ├── Success → Try Court 3 at 08:00
+              │             ├── Success → ✅ Court 3 complete. Done.
+              │             └── Fail    → ❌ Incomplete pair. Cancel Court 3 07:00. Done.
+              └── Fail    → ❌ No courts available.
 ```
+
+> **Key rule:** the bot never leaves a lone unpaired booking. If only one of the two slots is secured and the pair cannot be completed on any court, the isolated booking is cancelled.
 
 ---
 
@@ -162,7 +181,7 @@ logs/
 
 **Slot shown as unavailable but court is free:** The availability check uses `button[aria-label]` state. If the site layout changes, update the selectors in `reserva_final.py`.
 
-**Occupant shown as "nao encontrado":** The slot may genuinely be unbooked, or the bookings page took too long to load. The bot will still continue normally.
+**Phase 1 exits even though the right slots aren't booked:** Reservations are only considered relevant if they match the target courts (Saibro 1 or Saibro 3) AND target times (07:00 or 08:00). Any other booking is logged as `"fora do escopo"` and ignored. If this is still triggering unexpectedly, check the `court-name` text returned by the site against the `QUADRAS_ALVO` list in the script.
 
 **Screenshots not saved:** Make sure the `screenshots/` folder exists and the volume is mounted correctly in the `docker create` command.
 
