@@ -118,6 +118,21 @@ sudo docker create --name reserva-tenis \
 sudo docker start -a reserva-tenis
 ```
 
+### Alternative: quick local test with Docker Compose
+
+Steps 4–6 build a custom image and a named container meant to be started
+repeatedly by the NAS's Task Scheduler (see below). For a quick one-off test
+on your own machine, without building anything, `docker-compose.yml` runs
+the script directly against the official Playwright image, mounting your
+local code live:
+
+```bash
+docker compose run --rm reserva-tenis
+```
+
+This is for local testing only — the Synology scheduling setup below still
+relies on the persistent container created in step 5.
+
 ---
 
 ## Scheduling on a Synology NAS
