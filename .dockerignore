@@ -1,0 +1,6 @@
+.env
+screenshots/
+logs/
+.git/
+__pycache__/
+*.pyc

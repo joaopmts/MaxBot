@@ -6,4 +6,4 @@ RUN pip install playwright python-dotenv
 RUN playwright install chromium
 RUN mkdir -p /app/screenshots
 
-CMD ["python", "reserva_final.py"]
+CMD ["python", "src/reserva_final.py"]

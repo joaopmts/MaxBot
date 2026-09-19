@@ -13,5 +13,5 @@ services:
     command: >
       bash -c "pip install playwright python-dotenv &&
                playwright install chromium &&
-               python reserva_final.py"
+               python src/reserva_final.py"
     restart: "no"

@@ -53,12 +53,15 @@ Try Court 1 at 07:00
 
 ```
 .
-├── reserva_final.py        # Main automation script
+├── src/
+│   └── reserva_final.py    # Main automation script
 ├── Dockerfile              # Docker image with Playwright
 ├── docker-compose.yml      # Alternative local run configuration
-├── .env                    # Credentials (do not commit)
-├── screenshots/            # Confirmation screenshots saved here
-└── logs/                   # Execution logs saved here
+├── .env                    # Credentials (not version-controlled, see .gitignore)
+├── .gitignore
+├── .dockerignore
+├── screenshots/            # Confirmation screenshots saved here (not version-controlled)
+└── logs/                   # Execution logs saved here (not version-controlled)
 ```
 
 ---
@@ -138,7 +141,7 @@ To run the bot automatically every week:
 
 ## Updating the Bot
 
-After any change to `reserva_final.py`, rebuild the image and recreate the container:
+After any change to `src/reserva_final.py`, rebuild the image and recreate the container:
 
 ```bash
 sudo docker build -t reserva-tenis .
@@ -166,20 +169,14 @@ sudo docker create --name reserva-tenis \
 
 Credentials are loaded exclusively from environment variables via the `.env` file.
 
-- Never commit `.env` to version control
-- Add the following to your `.gitignore`:
-
-```
-.env
-screenshots/
-logs/
-```
+- Never commit `.env` to version control — this repo's `.gitignore` already excludes `.env`, `screenshots/` and `logs/`, and `.dockerignore` keeps them out of the image too.
+- If you ever find real credentials committed in the Git history (e.g. from before `.gitignore` was added), treat them as compromised: rotate the password on the booking site immediately, since removing a file from history doesn't undo a push to a public remote.
 
 ---
 
 ## Troubleshooting
 
-**Slot shown as unavailable but court is free:** The availability check uses `button[aria-label]` state. If the site layout changes, update the selectors in `reserva_final.py`.
+**Slot shown as unavailable but court is free:** The availability check uses `button[aria-label]` state. If the site layout changes, update the selectors in `src/reserva_final.py`.
 
 **Phase 1 exits even though the right slots aren't booked:** Reservations are only considered relevant if they match the target courts (Saibro 1 or Saibro 3) AND target times (07:00 or 08:00). Any other booking is logged as `"fora do escopo"` and ignored. If this is still triggering unexpectedly, check the `court-name` text returned by the site against the `QUADRAS_ALVO` list in the script.
 
